@@ -1,0 +1,61 @@
+---
+title: "Análise de dados ultilizando parcela subdividida"
+author: "Clevia Bento de Oliveira"
+date: "22/09/2021"
+output:
+  beamer_presentation: default
+  ioslides_presentation: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Introdução
+Será analisado um banco de dados fictício de um experimento em blocos casualizados, onde há 
+3 espécies diferentes de cultivares (CULT1, CULT2 e CULT3), 4 tipos diferentes de irrigação 
+(irrigacao1,irrigacao2,irrigacao3 e irrigacao4) com 3 repetições em blocos 
+casualizados.
+
+## Objetivo:
+
+Comparar se há diferença significativa de produção no plantio de diferentes espécies de cultivares e diferentes tipos de irrigação.
+
+## Metodologia  
+Para esta análise será utilizado o pacote `ExpDes.pt` para obter a ANOVA e demais resultados.
+
+## Visualização dos 10 primeiros dados do Banco de Dados
+  
+
+
+```{r warning=FALSE, echo=FALSE, message=FALSE}
+library(readxl)
+library(knitr)
+ dados1 <- read_excel("C:/Users/Clevia/Documents/dados relatorio1.xlsx")
+ library(knitr)
+kable(head(dados1, 5))
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+attach(dados1)
+dados1$Irrigacao = as.factor(dados1$Irrigacao)
+dados1$Cultivares  = as.factor(dados1$Cultivares)
+dados1$Prod = as.factor(dados1$Prod)
+summary(dados1)
+```
+
+## Visualização do Experimento 
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+require(lattice)
+xyplot(Prod ~ Irrigacao|Cultivares, groups=Cultivares, data=dados1, pch=c(19,20,1),auto.key=TRUE, jitter.x=T)
+```
+  
+---- 
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+xyplot(Prod ~ Cultivares|Irrigacao, groups=Irrigacao, data=dados1, pch=c(19,20,1),auto.key=TRUE, jitter.x=T)
+
+```
+----

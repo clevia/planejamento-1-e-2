@@ -1,0 +1,191 @@
+---
+title: "Análise de dados utilizando parcela subdividida"
+author: "Clevia Bento de Oliveira"
+date: "22/09/2021"
+output:
+  ioslides_presentation: default
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Introdução
+Será analisado um banco de dados fictício de um experimento em blocos casualizados, onde há 
+3 espécies diferentes de cultivares (CULT1, CULT2 e CULT3), 4 tipos diferentes de irrigação 
+(irrigacao1,irrigacao2,irrigacao3 e irrigacao4) com 3 repetições em blocos 
+casualizados.
+
+## Objetivo:
+
+Comparar se há diferença significativa de produção no plantio de diferentes espécies de cultivares e diferentes tipos de irrigação.
+
+## Metodologia  
+Para esta análise será utilizado o pacote `ExpDes.pt` para obter a ANOVA e demais resultados.
+
+## Visualização dos 5 primeiros dados do Banco de Dados
+  
+
+
+```{r warning=FALSE, echo=FALSE, message=FALSE}
+library(readxl)
+library(knitr)
+ dados1 <- read_excel("C:/Users/Clevia/Documents/dados relatorio1.xlsx")
+ library(knitr)
+kable(head(dados1, 5))
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+attach(dados1)
+dados1$Irrigacao = as.factor(dados1$Irrigacao)
+dados1$Cultivares  = as.factor(dados1$Cultivares)
+dados1$Prod = as.factor(dados1$Prod)
+summary(dados1)
+```
+
+## Visualização do Experimento 
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+require(lattice)
+xyplot(Prod ~ Irrigacao|Cultivares, groups=Cultivares, data=dados1, pch=c(19,20,1),auto.key=TRUE, jitter.x=T)
+```
+  
+---- 
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+xyplot(Prod ~ Cultivares|Irrigacao, groups=Irrigacao, data=dados1, pch=c(19,20,1),auto.key=TRUE, jitter.x=T)
+
+```
+
+## Teste de Hipóteses |Hipóteses que queremos testar:  
+H0: Não há diferença entre as irrigações em relação a produtividade.  
+H1: Há influência da irrigação na produtividade.  
+  
+H0:Há diferença entre os blocos.  
+H1: Não há diferença entre os blocos.  
+  
+H0: Não há diferença entre os cultivares na produtividade.  
+H1: Há diferença dos cultivares na produção.  
+  
+H0: A interação entre os cultivares e irrigação não é significativa.  
+H1: A interação é significativa.
+
+
+## Análise de Resíduos
+  
+```{r message=FALSE, warning=FALSE}
+dados.avb = aov(Prod ~ Cultivares*Irrigacao + Bloco*Cultivares-Bloco)
+summary(dados.avb)
+```
+
+## Gráfico
+```{r,message=FALSE,warning=FALSE}
+par(mfrow=c(2,2))
+plot(dados.avb)
+```
+
+## Teste de Normalidade 
+
+```{r message=FALSE, warning=FALSE}
+shapiro.test(dados.avb$residuals)
+```
+Como o teste de significativo, podemos afirmar que os dados seguem uma distribuição Normal  
+
+## Boxplot |irrigação
+
+```{r,message=FALSE,warning=FALSE,echo=FALSE}
+
+car::Boxplot(dados.avb$residuals~Irrigacao)
+```
+## Cultivar
+```{r,message=FALSE,warning=FALSE,echo=FALSE}
+car::Boxplot(dados.avb$residuals~Cultivares)
+```
+## Cultivar x Irrigação
+```{r,message=FALSE, warning=FALSE, echo=FALSE}
+car::Boxplot(dados.avb$residuals~Cultivares:Irrigacao)
+```
+
+```{r include=FALSE}
+bartlett.test(dados.avb$residuals, Irrigacao)
+bartlett.test(dados.avb$residuals, Cultivares)
+```
+
+## Quadro da análise de variância
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+require(ExpDes.pt)
+psub2.dbc(Cultivares, Irrigacao, Bloco, Prod, quali = c(TRUE, TRUE),mcomp = "tukey",
+          fac.names = c("Cultivares", "Irrigação"), sigF = 0.05)
+```
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+anova1<-read_excel("C:/Users/Clevia/Documents/Planejamento 2/anovatrab1.xlsx")
+kable(anova1)
+```
+
+## Teste Tukey |Cultivares dentro de Irrigação - irrigacao 2
+
+```
+Grupos Tratamentos  Medias  
+a 	    CULT3 	    112.3333   
+b 	    CULT2 	    81.33333   
+b 	    CULT1 	    73.33333
+```    
+
+
+## Cultivares dentro de Irrigação - irrigacao 3
+
+``` 
+Grupos Tratamentos Medias  
+a 	   CULT2 	     81   
+b 	   CULT3 	     67   
+b 	   CULT1 	     64.33333 
+```   
+
+## Cultivares dentro de Irrigação - irrigacao 4 
+``` 
+Grupos Tratamentos  Medias  
+a 	    CULT2 	     100   
+ b 	    CULT3 	     73.33333   
+  c 	  CULT1 	     62.66667
+  ```     
+  
+## Irrigação dentro de Cultivares - CULT1
+``` 
+Grupos Tratamentos Medias  
+a 	 irrigacao2 	 73.33333   
+ab 	 irrigacao1 	 68.66667   
+ b 	 irrigacao3 	 64.33333   
+ b 	 irrigacao4 	 62.66667   
+ ```
+  
+
+ 
+## Irrigação dentro de Cultivares - CULT2
+``` 
+Grupos Tratamentos   Medias  
+a 	   irrigacao4 	 100   
+ b 	   irrigacao2 	 81.33333   
+ b 	   irrigacao3 	 81   
+  c 	 irrigacao1 	 68.33333 
+  ```
+
+## Irrigação dentro de Cultivares - CULT3
+``` 
+Grupos Tratamentos Medias  
+ a 	  irrigacao2 	 112.3333   
+ b 	  irrigacao4 	 73.33333   
+ b 	  irrigacao1 	 70   
+ b 	  irrigacao3 	 67 
+ ```
+
+## Conclusão 
+Observa-se que as interações foram significativas na análise de variância.  
+Analisando os desdobramentos temos que:  
+Dentre os 3 Cultivares, o Cultivar 2 apresenta melhores resultados em relação às Irrigações.  
+Dentre as 4 Irrigações, a Irrigação 2 apresenta melhores resultados em relação aos Cultivares.
+
+
